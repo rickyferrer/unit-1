@@ -20,6 +20,9 @@ export default function NewRecipePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const [importUrl, setImportUrl] = useState("");
+  const [importing, setImporting] = useState(false);
+
   const [title, setTitle] = useState("");
   const [source, setSource] = useState("");
   const [description, setDescription] = useState("");
@@ -37,6 +40,34 @@ export default function NewRecipePage() {
   if (status === "unauthenticated") {
     router.push("/login");
     return null;
+  }
+
+  async function handleImport(e: React.FormEvent) {
+    e.preventDefault();
+    if (!importUrl.trim()) return;
+    setError("");
+    setImporting(true);
+
+    try {
+      const res = await fetch("/api/recipes/import", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: importUrl }),
+      });
+
+      const data = await res.json();
+      setImporting(false);
+
+      if (!res.ok) {
+        setError(typeof data.error === "string" ? data.error : "Import failed");
+        return;
+      }
+
+      router.push(`/recipes/${data.id}`);
+    } catch {
+      setImporting(false);
+      setError("Failed to import recipe");
+    }
   }
 
   function addIngredient() {
@@ -119,6 +150,44 @@ export default function NewRecipePage() {
   return (
     <div className="mx-auto max-w-2xl">
       <h1 className="text-xl font-bold text-gray-900 mb-6">New Recipe</h1>
+
+      {error && <p className="text-sm text-red-600 mb-4">{error}</p>}
+
+      {/* Import by URL */}
+      <form onSubmit={handleImport} className="mb-8 rounded-lg border border-gray-200 bg-white p-4">
+        <label htmlFor="importUrl" className="block text-sm font-medium text-gray-700 mb-2">
+          Import from URL
+        </label>
+        <div className="flex gap-2">
+          <input
+            id="importUrl"
+            type="url"
+            value={importUrl}
+            onChange={(e) => setImportUrl(e.target.value)}
+            placeholder="https://www.example.com/recipe/..."
+            className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          />
+          <button
+            type="submit"
+            disabled={importing || !importUrl.trim()}
+            className="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50"
+          >
+            {importing ? "Importing..." : "Import"}
+          </button>
+        </div>
+        <p className="mt-1 text-xs text-gray-400">
+          Paste a recipe URL to automatically import ingredients and steps
+        </p>
+      </form>
+
+      <div className="relative mb-6">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-gray-200" />
+        </div>
+        <div className="relative flex justify-center text-sm">
+          <span className="bg-gray-50 px-2 text-gray-500">or enter manually</span>
+        </div>
+      </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {error && <p className="text-sm text-red-600">{error}</p>}

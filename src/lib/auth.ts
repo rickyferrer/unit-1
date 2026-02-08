@@ -3,9 +3,15 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { compare } from "bcryptjs";
 import { prisma } from "./prisma";
 
+const NINETY_DAYS = 90 * 24 * 60 * 60;
+
 export const authOptions: NextAuthOptions = {
   session: {
     strategy: "jwt",
+    maxAge: NINETY_DAYS,
+  },
+  jwt: {
+    maxAge: NINETY_DAYS,
   },
   pages: {
     signIn: "/login",
