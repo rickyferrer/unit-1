@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import bcrypt from "bcryptjs";
+import { hash } from "bcryptjs";
 import { randomBytes } from "crypto";
 
 const prisma = new PrismaClient();
@@ -9,7 +9,7 @@ async function main() {
   const bootstrapCode = randomBytes(4).toString("hex");
 
   // Create initial user
-  const passwordHash = await bcrypt.hash("password123", 12);
+  const passwordHash = await hash("password123", 12);
 
   const user = await prisma.user.upsert({
     where: { email: "demo@cookbook.local" },
