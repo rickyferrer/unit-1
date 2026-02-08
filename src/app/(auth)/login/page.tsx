@@ -1,6 +1,6 @@
 "use client";
 
-import { signIn } from "next-auth/react";
+import { signIn, getSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
@@ -28,6 +28,7 @@ export default function LoginPage() {
     if (result?.error) {
       setError("Invalid email or password");
     } else {
+      await getSession();
       router.push("/feed");
       router.refresh();
     }
